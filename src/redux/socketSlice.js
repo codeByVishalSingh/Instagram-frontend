@@ -3,11 +3,11 @@ import { createSlice } from "@reduxjs/toolkit";
 const scoketSlice = createSlice({
     name:"socketio",
     initialState:{
-        Socket:null
+        socket:null
     },
     reducers:{
         setSocket:(state, action) =>{
-            state.Socket =action.payload;
+            state.socket =action.payload;
 
         }
     }

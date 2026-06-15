@@ -5,10 +5,40 @@ import { setSelectedUser } from "../redux/auth.slice";
 import { Button } from "./ui/button";
 import { MessageCircleCode } from "lucide-react";
 import Messages from "./Messages";
+import {  useEffect, useState } from "react";
+import axios from "axios";
+import { setMessages } from "../redux/chatSlice";
+
+
 const ChatPage = ()=>{
+    const [textMessage,setTextMessage] =useState("")
     const {user,suggestedUsers,selectedUser} = useSelector(store => store.auth)
-     const {onlineUsers} = useSelector(store =>store.chat)
-    const dipatch = useDispatch()
+     const {onlineUsers,messages} = useSelector(store =>store.chat)
+    const dispatch = useDispatch()
+
+   
+const sendMessagehandler = async (receiverId) => {
+    try {
+        const res = await axios.post(`http://localhost:3001/api/v1/message/send/${receiverId}`, 
+            { textMessage }, 
+            { withCredentials: true }
+        );
+
+        if (res.data.success) {
+            // FIX: Agar 'messages' undefined hai, toh [] use karo
+            const currentMessages = Array.isArray(messages) ? messages : [];
+            dispatch(setMessages([...currentMessages, res.data.newMessage]));
+            setTextMessage("");
+        }
+    } catch (error) {
+        console.log("Error sending message:", error);
+    }
+}
+    useEffect(()=>{
+        return ()=>{
+            dispatch(setSelectedUser(null))
+        }
+    },[]);
     return(
         <div className="flex ml-[18%] h-screen">
            <section className="w-full md:w-1/4 my-8">
@@ -21,7 +51,7 @@ const ChatPage = ()=>{
        suggestedUsers.map((suggestedUsers)=> {
         const isOnline = onlineUsers.includes(suggestedUsers?._id);
         return (
-            <div onClick={()=> dipatch(setSelectedUser(suggestedUsers))} className="flex gap-3 items-center p-3 hover:bg-gray-100 cursor-pointer"> 
+            <div onClick={()=> dispatch(setSelectedUser(suggestedUsers))} className="flex gap-3 items-center p-3 hover:bg-gray-100 cursor-pointer"> 
                 <Avatar className="w-14 h-14"> 
                     <AvatarImage src={suggestedUsers?.profilePic} />
                     <AvatarFallback>VS</AvatarFallback>
@@ -52,8 +82,8 @@ const ChatPage = ()=>{
                     </div>
                     <Messages selectedUser={selectedUser}/>
                     <div className="flex items-center p-4 border-t-gray-400">
-                      <input type="text" placeholder="Messages......" className="flex-1 mr-2 focus-visible:ring transparent" />
-                   <Button>Send</Button>
+                      <input value={textMessage} onChange={(e)=> setTextMessage(e.target.value)} type="text" placeholder="Messages......" className="flex-1 mr-2 focus-visible:ring transparent" />
+                   <Button onClick={()=> sendMessagehandler(selectedUser?._id)} className='cursor-pointer'>Send</Button>
                     </div>
                 </section>
             ) :(

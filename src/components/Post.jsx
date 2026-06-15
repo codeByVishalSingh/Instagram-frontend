@@ -105,7 +105,23 @@ const Post = ({ post }) => {
       toast.error(errorMsg);
     }
   };
+   
 
+
+  const BookmarkHandler = async () =>{
+        try {
+            const res = await axios.get(
+        `http://localhost:3001/api/v1/post/${post?._id}/bookmark`,
+        { withCredentials: true },
+      );
+      if(res.data.success){
+        toast.success(res.data.message)
+      }
+        } catch (error) {
+          console.log(error);
+          
+        }
+  }
   return (
     <div className="my-8 w-full max-w-sm mx-auto">
       <div className="flex items-center justify-between">
@@ -126,9 +142,12 @@ const Post = ({ post }) => {
           </DialogTrigger>
 
           <DialogContent className="flex flex-col items-center text-sm text-center">
-            <Button variant="ghost" className="w-fit text-red-500 font-bold">
+            {
+              post?.author?._id !== user?._id &&  <Button variant="ghost" className="w-fit text-red-500 font-bold">
               Unfollow
             </Button>
+            }
+           
 
             <Button variant="ghost" className="cursor-pointer w-fit">
               Add to Favorites
@@ -169,7 +188,7 @@ const Post = ({ post }) => {
           />
           <Send className="cursor-pointer hover:text-gray-600" />
         </div>
-        <Bookmark className="cursor-pointer hover:text-gray-600" />
+        <Bookmark onClick={BookmarkHandler} className="cursor-pointer hover:text-gray-600" />
       </div>
       <span className="font-medium block mb-2">{postLike} likes</span>
       <p>
